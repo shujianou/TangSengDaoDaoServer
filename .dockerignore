@@ -1,0 +1,16 @@
+ .git
+.gitignore
+.env
+*.md
+*.log
+tmp/
+test/
+.idea/
+.vscode/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+docker/docker_data/

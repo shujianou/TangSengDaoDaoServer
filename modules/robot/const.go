@@ -19,12 +19,6 @@ const (
 
 var systemRobotMap = []*systemRobotMenu{
 	{
-		CMD:          "/基本信息",
-		Remark:       "唐僧叨叨基本信息",
-		ReplyContent: "唐僧叨叨是一款轻量级，高性能，重安全专注于私有化部署的开源即时通讯系统。唐僧叨叨官网：https://www.tsdaodao.com 各端演示地址：https://tsdaodao.com/guide/demo.html 悟空官网：https://githubim.com 在APP我的-设置-模块管理中关闭所有模块即是开源版本所有功能。",
-		Type:         string(None),
-	},
-	{
 		CMD:          "/添加好友",
 		Remark:       "如何添加好友",
 		ReplyContent: "您好，点击右上角【+】，选择【添加好友】-- 点击搜索 -- 输入用户的手机号、短号（任意一个添加即可）进行好友添加查找",
@@ -46,12 +40,6 @@ var systemRobotMap = []*systemRobotMenu{
 		CMD:          "/搜索GIF",
 		Remark:       "聊天中如何发送GIF",
 		ReplyContent: "您好，在聊天对话页面，点击输入框输入‘@’符号然后再输入‘gif’并输入一个空格，之后就是您要搜索的GIF的关键词。输入关键词后GIF图片就会显示在输入框上，点击任意GIF图片就能发送到当前会话了",
-		Type:         string(None),
-	},
-	{
-		CMD:          "/Android包下载",
-		Remark:       "如何下载唐僧叨叨 Android包",
-		ReplyContent: "您好，唐僧叨叨 Android应用下载地址 https://www.pgyer.com/tsdd",
 		Type:         string(None),
 	},
 	// {

@@ -17,3 +17,9 @@ stop-dev:
 	docker-compose stop
 env-test:
 	docker-compose -f ./testenv/docker-compose.yaml up -d 
+build-docker:
+	mkdir -p build_temp
+	cp -r . build_temp/
+	cp -r ../TangSengDaoDaoServerLib build_temp/TangSengDaoDaoServerLib
+	cd build_temp && docker build -t tangsengdaodao:latest .
+	rm -rf build_temp 

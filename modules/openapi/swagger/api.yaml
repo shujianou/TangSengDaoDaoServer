@@ -1,9 +1,9 @@
 swagger: "2.0"
 info:
-  description: "唐僧叨叨 API"
+  description: "IM业务 API"
   version: "1.0.0"
-  title: "唐僧叨叨 API"
-host: "api.botgate.cn"
+  title: "IM业务 API"
+host: "localhost"
 tags:
   - name: "openapi"
     description: "openapi"

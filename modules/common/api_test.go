@@ -72,7 +72,7 @@ func TestGetAppConfig(t *testing.T) {
 	err := testutil.CleanAllTables(ctx)
 	assert.NoError(t, err)
 	err = f.appConfigDB.insert(&appConfigModel{
-		WelcomeMessage:                 "欢迎使用唐僧叨叨",
+		WelcomeMessage:                 "欢迎使用",
 		NewUserJoinSystemGroup:         1,
 		RegisterInviteOn:               1,
 		InviteSystemAccountJoinGroupOn: 1,

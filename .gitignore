@@ -29,3 +29,6 @@
 logs/
 
 wukongimdata/
+docker_data/
+build_temp/
+.cursorrules

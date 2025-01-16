@@ -1,9 +1,9 @@
 swagger: "2.0"
 info:
-  description: "唐僧叨叨 API"
+  description: "IM业务 API"
   version: "1.0.0"
-  title: "唐僧叨叨 API"
-host: "api.botgate.cn"
+  title: "IM业务 API"
+host: "localhost"
 tags:
   - name: "user"
     description: "用户"
@@ -1221,7 +1221,7 @@ paths:
         - in: "query"
           name: "type"
           type: string
-          description: "校验类型‘password’ ‘login’"
+          description: "校验类型'password' 'login'"
           required: true
       responses:
         200:
@@ -1263,7 +1263,7 @@ paths:
                 description: "web3 sign 密文"
               type:
                 type: string
-                description: "校验类型 ‘password’ | ’login‘"
+                description: "校验类型 'password' | 'login'"
               username:
                 type: string
                 description: "用户名"
@@ -1578,8 +1578,6 @@ paths:
           description: "错误"
           schema:
             $ref: "#/definitions/response"
-      security:
-        - token: []
     delete:
       tags:
         - "user"
@@ -2093,7 +2091,7 @@ paths:
         - in: "path"
           name: "category"
           type: string
-          description: "红点分类 ‘friendApply’ 申请加好友红点"
+          description: "红点分类 'friendApply' 申请加好友红点"
           required: true
       responses:
         200:
@@ -2111,8 +2109,6 @@ paths:
           description: "错误"
           schema:
             $ref: "#/definitions/response"
-      security:
-        - token: []
     delete:
       tags:
         - "user"
@@ -2127,7 +2123,7 @@ paths:
         - in: "path"
           name: "category"
           type: string
-          description: "红点分类 ‘friendApply’ 申请加好友红点"
+          description: "红点分类 'friendApply' 申请加好友红点"
           required: true
       responses:
         200:
@@ -2257,6 +2253,102 @@ paths:
           description: "返回"
           schema:
             type: object
+        400:
+          description: "错误"
+          schema:
+            $ref: "#/definitions/response"
+
+  /user/business/login:
+    post:
+      tags:
+        - "user"
+      summary: "业务系统用户登录"
+      description: "业务系统用户登录或注册"
+      operationId: "business login"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "header"
+          name: "X-Business-Token"
+          type: string
+          required: true
+          description: "业务系统认证token"
+        - in: "body"
+          name: "req"
+          description: "业务系统登录请求"
+          required: true
+          schema:
+            type: object
+            properties:
+              uid:
+                type: string
+                description: "业务系统用户ID，可选"
+              name:
+                type: string
+                description: "用户昵称"
+                required: true
+              sex:
+                type: integer
+                description: "性别 1:男 2:女"
+                required: true
+              flag:
+                type: integer
+                description: "设备标记 0.APP 1.PC"
+                required: true
+              device:
+                type: object
+                description: "设备信息"
+                properties:
+                  device_id:
+                    type: string
+                    description: "设备唯一ID"
+                  device_name:
+                    type: string
+                    description: "设备名称"
+                  device_model:
+                    type: string
+                    description: "设备model"
+              zone:
+                type: string
+                description: "区号"
+              phone:
+                type: string
+                description: "手机号"
+              username:
+                type: string
+                description: "用户名"
+      responses:
+        200:
+          description: "返回登录用户详情"
+          schema:
+            type: object
+            properties:
+              uid:
+                type: string
+                description: "用户唯一ID"
+              token:
+                type: string
+                description: "用户token"
+              name:
+                type: string
+                description: "用户昵称"
+              sex:
+                type: integer
+                description: "性别 1:男 2:女"
+              short_no:
+                type: string
+                description: "短编号"
+              zone:
+                type: string
+                description: "区号"
+              phone:
+                type: string
+                description: "手机号"
+              username:
+                type: string
+                description: "用户名"
         400:
           description: "错误"
           schema:
@@ -2456,7 +2548,7 @@ definitions:
         description: "性别 1 男"
       category:
         type: string
-        description: "用户分类 ‘客服’ 等"
+        description: "用户分类 '客服' 等"
       short_no:
         type: string
         description: "用户唯一短号"

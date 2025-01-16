@@ -21,7 +21,7 @@ func TestAddBanner(t *testing.T) {
 	err := testutil.CleanAllTables(ctx)
 	assert.NoError(t, err)
 	req, _ := http.NewRequest("POST", "/v1/manager/workplace/banner", bytes.NewReader([]byte(util.ToJson(map[string]interface{}{
-		"cover":       "https://api.botgate.cn/v1/users/admin/avatar",
+		"cover":       "https://localhost/v1/users/admin/avatar",
 		"title":       "横幅title",
 		"description": "横幅介绍",
 		"jump_type":   0,
@@ -315,7 +315,7 @@ func TestAppList(t *testing.T) {
 	err = wm.db.insertAPP(&appModel{
 		AppID:       "tsdd",
 		Icon:        "ddddd",
-		Name:        "唐僧叨叨",
+		Name:        "悟空IM",
 		Description: "悟空IM让信息传递更简单",
 		JumpType:    0,
 		AppRoute:    "http://www.githubim.com",
@@ -354,7 +354,7 @@ func TestGetCategoryApps(t *testing.T) {
 	err = wm.db.insertAPP(&appModel{
 		AppID:       appId2,
 		Icon:        "dddddd",
-		Name:        "唐僧叨叨",
+		Name:        "IM App",
 		Description: "悟空IM让信息传递更简单",
 		JumpType:    0,
 		AppRoute:    "http://www.githubim.com",
@@ -464,7 +464,7 @@ func TestAddCategoryApp(t *testing.T) {
 	err = wm.db.insertAPP(&appModel{
 		AppID:       appId2,
 		Icon:        "dddddd",
-		Name:        "唐僧叨叨",
+		Name:        "IM App",
 		Description: "悟空IM让信息传递更简单",
 		JumpType:    0,
 		AppRoute:    "http://www.githubim.com",
@@ -525,7 +525,7 @@ func TestDeleteCategoryApp(t *testing.T) {
 	err = wm.db.insertAPP(&appModel{
 		AppID:       appId2,
 		Icon:        "dddddd",
-		Name:        "唐僧叨叨",
+		Name:        "IM App",
 		Description: "悟空IM让信息传递更简单",
 		JumpType:    0,
 		AppRoute:    "http://www.githubim.com",

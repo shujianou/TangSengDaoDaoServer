@@ -1,9 +1,9 @@
 # #################### 基础配置 ####################
 mode: "debug" #   运行模式 debug or release
-# adminpwd: "123456" # 管理员密码
+adminpwd: "123456" # 管理员密码
 #addr: ":8090" # api监听地址
 #grpcAddr: "0.0.0.0:6979" # webhook grpc监听地址 给悟空IM提供的
-#appName: "唐僧叨叨" # 项目名称
+#appName: "IM App" # 项目名称
 #rootDir: "tsdddata" # 数据根目录
 #messageSaveAcrossDevice: true # 消息是否跨设备保存（换设备登录消息是否还能同步到老消息）
 #welcomeMessage: "欢迎使用{{appName}}" # 欢迎消息
@@ -37,7 +37,7 @@ mode: "debug" #   运行模式 debug or release
 #  lineNum: false # 是否打印行号
 
 ##################### 短信配置 ####################
-smsCode: "123456" # 测试短信验证码， 如果不为空，则短信验证码为该值。
+smsCode: "111111" # 测试短信验证码， 如果不为空，则短信验证码为该值。
 #smsProvider: "aliyun" # 短信服务商. 例如: aliyun or unisms
 #aliyunSMS:
 #  accessKeyID: "" # 阿里云短信accessKeyID
@@ -160,3 +160,6 @@ smsCode: "123456" # 测试短信验证码， 如果不为空，则短信验证�
 #  friendApplyTokenCachePrefix: "friend_token:" # 好友申请token缓存前缀
 #  friendApplyExpire: 15d # 好友申请token过期时间
 #  nameCacheExpire: 7d # 名称缓存过期时间
+business:
+  tokens:
+    - "a245d4b04b1001"

@@ -1,3 +1,7 @@
+// @title TangSengDaoDao API
+// @version 1.0
+// @description TangSengDaoDao Server API documentation
+// @BasePath /
 package main
 
 import (
@@ -8,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 
+	_ "github.com/TangSengDaoDao/TangSengDaoDaoServer/docs"
 	_ "github.com/TangSengDaoDao/TangSengDaoDaoServer/internal"
 	"github.com/TangSengDaoDao/TangSengDaoDaoServer/modules/base/event"
 	"github.com/TangSengDaoDao/TangSengDaoDaoServerLib/config"
@@ -89,6 +94,7 @@ func runAPI(ctx *config.Context) {
 		}
 		gin.Logger()(c)
 	})
+
 	// 模块安装
 	err := module.Setup(ctx)
 	if err != nil {
@@ -117,48 +123,7 @@ func runAPI(ctx *config.Context) {
 
 func printServerInfo(ctx *config.Context) {
 	infoStr := `
-[?25l[?7lLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-LLLLLLLLLLLL0CLLLLLLLLLLLLLLLLLLLLLLLLLL
-LLLLLLLLLL08@880CfLLLLLLLLLLLLLLLLLLLLLL
-LLLLLLLLfL8@8@@8LfLLLLLLLLLLLLLLLLLLLLLL
-ffffffffft0@@8@8ffffffffffffffffffffffff
-fffffffffCCL8@GLLfLLLfffffffffffffffffff
-ffffffffCLLC0@GCCLLLLCffffffffffffffffff
-ffffffffG0@@@@@@@8Ltffffffffffffffffffff
-ffffffftC888888888Gtffffffffffffffffffff
-ffffffftttttttttttttffffffffffffffffffff
-fffffffttttttttttttfffffffffffffffffffff
-tttttttttttttfftffttttttttttttttttfttttt
-tttttttttttttttttttttttttttttttttttttttt
-tttttttttttttttttttttttttttttttttttttttt
-tttttttttttttttttttttttttttttttttttttttt
-tttttttttttttttttttttttttttttttttttttttt
-tttttttttttttttttttttttttttttttttttttttt
-111t111111111tt1111111tt1111111t11111111[0m
-[20A[9999999D[43C[0m[0m 
-[43C[0m[1m[32mTangSengDaoDao is running[0m 
-[43C[0m-------------------------[0m 
-[43C[0m[1m[33mMode[0m[0m:[0m #mode#[0m 
-[43C[0m[1m[33mConfig[0m[0m:[0m #configPath#[0m 
-[43C[0m[1m[33mApp name[0m[0m:[0m #appname#[0m 
-[43C[0m[1m[33mVersion[0m[0m:[0m #version#[0m 
-[43C[0m[1m[33mGit[0m[0m:[0m #git#[0m 
-[43C[0m[1m[33mGo build[0m[0m:[0m #gobuild#[0m 
-[43C[0m[1m[33mIM URL[0m[0m:[0m #imurl#[0m 
-[43C[0m[1m[33mFile Service[0m[0m:[0m #fileService#[0m 
-[43C[0m[1m[33mThe API is listening at[0m[0m:[0m #apiAddr#[0m 
-
-[43C[30m[40m   [31m[41m   [32m[42m   [33m[43m   [34m[44m   [35m[45m   [36m[46m   [37m[47m   [m
-[43C[38;5;8m[48;5;8m   [38;5;9m[48;5;9m   [38;5;10m[48;5;10m   [38;5;11m[48;5;11m   [38;5;12m[48;5;12m   [38;5;13m[48;5;13m   [38;5;14m[48;5;14m   [38;5;15m[48;5;15m   [m
-
-
-
-
-
-
-[?25h[?7h
+	Hello IM
 	`
 	cfg := ctx.GetConfig()
 	infoStr = strings.Replace(infoStr, "#mode#", string(cfg.Mode), -1)

@@ -15,7 +15,7 @@ services:
     ports:
       - 3306:3306    
   wukongim: # wukongim底层通讯服务
-    image: wukongim/wukongim:latest
+    image: registry.cn-shenzhen.aliyuncs.com/golfonline-cloud/golfonline-im:2.1.0-SNAPSHOT
     restart: always
     volumes:
       - ./wukongimdata:/root/wukongim

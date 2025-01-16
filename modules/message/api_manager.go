@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 	"time"
@@ -47,16 +48,17 @@ func NewManager(ctx *config.Context) *Manager {
 func (m *Manager) Route(r *wkhttp.WKHttp) {
 	auth := r.Group("/v1/manager", m.ctx.AuthMiddleware(r))
 	{
-		auth.POST("/message/send", m.sendMsg)                         // 发送消息
-		auth.POST("message/sendfriends", m.sendMsgToFriends)          // 给某个用户代发消息
-		auth.GET("/message", m.list)                                  // 代发消息记录
-		auth.POST("/message/sendall", m.sendMsgToAllUsers)            // 给所有用户发送一条消息
-		auth.GET("/message/record", m.record)                         // 消息记录
-		auth.GET("/message/recordpersonal", m.recordpersonal)         // 单聊聊天记录
-		auth.POST("/message/prohibit_words", m.addProhibitWords)      // 添加违禁词
-		auth.GET("/message/prohibit_words", m.prohibitWords)          // 查询违禁词
-		auth.DELETE("/message/prohibit_words", m.deleteProhibitWords) // 删除违禁词
-		auth.DELETE("/message", m.delete)                             // 删除消息
+		auth.POST("/message/send", m.sendMsg)                               // 发送消息
+		auth.POST("message/sendfriends", m.sendMsgToFriends)                // 给某个用户代发消息
+		auth.GET("/message", m.list)                                        // 代发消息记录
+		auth.POST("/message/sendall", m.sendMsgToAllUsers)                  // 给所有用户发送一条消息
+		auth.GET("/message/record", m.record)                               // 消息记录
+		auth.GET("/message/recordpersonal", m.recordpersonal)               // 单聊聊天记录
+		auth.POST("/message/prohibit_words", m.addProhibitWords)            // 添加违禁词
+		auth.POST("/message/prohibit_words/batch", m.batchAddProhibitWords) // 批量添加违禁词
+		auth.GET("/message/prohibit_words", m.prohibitWords)                // 查询违禁词
+		auth.DELETE("/message/prohibit_words", m.deleteProhibitWords)       // 删除违禁词
+		auth.DELETE("/message", m.delete)                                   // 删除消息
 	}
 }
 func (m *Manager) sendMsgToFriends(c *wkhttp.Context) {
@@ -930,4 +932,140 @@ type prohibitWordsVO struct {
 	IsDeleted int    `json:"is_deleted"` // 是否删除
 	Version   int64  `json:"version"`    // 版本
 	CreatedAt string `json:"created_at"` // 时间
+}
+
+// 批量添加违禁词
+func (m *Manager) batchAddProhibitWords(c *wkhttp.Context) {
+	err := c.CheckLoginRoleIsSuperAdmin()
+	if err != nil {
+		c.ResponseError(err)
+		return
+	}
+
+	// 获取上传的多个文件
+	form, err := c.MultipartForm()
+	if err != nil {
+		m.Error("获取上传文件失败！", zap.Error(err))
+		c.ResponseError(errors.New("请上传违禁词文件"))
+		return
+	}
+	files := form.File["files"]
+	if len(files) == 0 {
+		c.ResponseError(errors.New("请上传违禁词文件"))
+		return
+	}
+
+	// 使用map对违禁词进行去重
+	wordMap := make(map[string]struct{})
+
+	// 遍历所有上传的文件，先收集所有违禁词
+	for _, file := range files {
+		// 打开文件
+		src, err := file.Open()
+		if err != nil {
+			m.Error("打开文件失败！", zap.Error(err))
+			c.ResponseError(errors.New("打开文件失败"))
+			return
+		}
+
+		// 读取文件内容
+		content, err := io.ReadAll(src)
+		if err != nil {
+			src.Close()
+			m.Error("读取文件内容失败！", zap.Error(err))
+			c.ResponseError(errors.New("读取文件内容失败"))
+			return
+		}
+		src.Close()
+
+		// 按行分割文件内容
+		lines := strings.Split(string(content), "\n")
+		if len(lines) == 0 {
+			continue
+		}
+
+		for _, line := range lines {
+			// 去除空白字符和回车符
+			content := strings.TrimSpace(strings.TrimRight(line, "\r"))
+			if content == "" {
+				continue
+			}
+			wordMap[content] = struct{}{}
+		}
+	}
+
+	if len(wordMap) == 0 {
+		c.ResponseError(errors.New("没有有效的违禁词"))
+		return
+	}
+
+	// 开启事务
+	tx, err := m.managerDB.session.Begin()
+	if err != nil {
+		m.Error("开启事务失败！", zap.Error(err))
+		c.ResponseError(errors.New("开启事务失败！"))
+		return
+	}
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+			panic(err)
+		}
+	}()
+
+	// 查询已存在的违禁词
+	existWords, err := m.managerDB.queryProhibitWordsWithContents(getMapKeys(wordMap))
+	if err != nil {
+		tx.Rollback()
+		m.Error(common.ErrData.Error(), zap.Error(err))
+		c.ResponseError(errors.New("查询违禁词错误"))
+		return
+	}
+
+	// 使用map记录已存在的违禁词
+	existMap := make(map[string]struct{})
+	for _, word := range existWords {
+		existMap[word.Content] = struct{}{}
+	}
+
+	// 准备需要插入的违禁词
+	var insertWords []*prohibitWordsModel
+	for word := range wordMap {
+		if _, exists := existMap[word]; !exists {
+			insertWords = append(insertWords, &prohibitWordsModel{
+				IsDeleted: 0,
+				Content:   word,
+				Version:   m.ctx.GenSeq(common.ProhibitWordKey),
+			})
+		}
+	}
+
+	// 批量插入新的违禁词
+	if len(insertWords) > 0 {
+		err = m.managerDB.batchInsertProhibitWords(insertWords, tx)
+		if err != nil {
+			tx.Rollback()
+			m.Error(common.ErrData.Error(), zap.Error(err))
+			c.ResponseError(errors.New("批量插入违禁词错误"))
+			return
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		m.Error("提交事务失败！", zap.Error(err))
+		c.ResponseError(errors.New("提交事务失败！"))
+		return
+	}
+	c.ResponseOK()
+}
+
+// 获取map的所有key
+func getMapKeys(m map[string]struct{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }

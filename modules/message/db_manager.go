@@ -1,6 +1,8 @@
 package message
 
 import (
+	"strings"
+
 	"github.com/TangSengDaoDao/TangSengDaoDaoServerLib/config"
 	"github.com/TangSengDaoDao/TangSengDaoDaoServerLib/pkg/db"
 	"github.com/TangSengDaoDao/TangSengDaoDaoServerLib/pkg/util"
@@ -109,6 +111,34 @@ func (m *managerDB) queryProhibitWordsCountWithContent(content string) (int64, e
 
 func (m *managerDB) updateMsgExtraVersionAndDeletedTx(md *messageExtraModel, tx *dbr.Tx) error {
 	_, err := tx.InsertBySql("INSERT INTO message_extra (message_id,message_seq,channel_id,channel_type,is_deleted,version) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE is_deleted=VALUES(is_deleted),version=VALUES(version)", md.MessageID, md.MessageSeq, md.ChannelID, md.ChannelType, md.IsDeleted, md.Version).Exec()
+	return err
+}
+
+// 批量查询违禁词
+func (m *managerDB) queryProhibitWordsWithContents(contents []string) ([]*prohibitWordsModel, error) {
+	var models []*prohibitWordsModel
+	_, err := m.session.Select("*").From("prohibit_words").Where("content in ?", contents).Load(&models)
+	return models, err
+}
+
+// 批量插入违禁词
+func (m *managerDB) batchInsertProhibitWords(words []*prohibitWordsModel, tx *dbr.Tx) error {
+	if len(words) == 0 {
+		return nil
+	}
+
+	// 构建批量插入SQL
+	sql := "INSERT INTO prohibit_words (content, is_deleted, version) VALUES "
+	params := make([]interface{}, 0)
+	values := make([]string, 0)
+
+	for _, word := range words {
+		values = append(values, "(?, ?, ?)")
+		params = append(params, word.Content, word.IsDeleted, word.Version)
+	}
+
+	sql += strings.Join(values, ",")
+	_, err := tx.Exec(sql, params...)
 	return err
 }
 

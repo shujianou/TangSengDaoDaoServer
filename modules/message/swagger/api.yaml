@@ -1,9 +1,9 @@
 swagger: "2.0"
 info:
-  description: "唐僧叨叨 API"
+  description: "IM业务 API"
   version: "1.0.0"
-  title: "唐僧叨叨 API"
-host: "api.botgate.cn"
+  title: "IM业务 API"
+host: "localhost"
 tags:
   - name: "message"
     description: "消息"
@@ -340,6 +340,36 @@ paths:
           name: "content"
           type: string
           description: "违禁词内容"
+          required: true
+      responses:
+        200:
+          description: "返回"
+          schema:
+            $ref: "#/definitions/response"
+        400:
+          description: "错误"
+          schema:
+            $ref: "#/definitions/response"
+      security:
+        - token: []
+  /manager/message/prohibit_words/batch:
+    post:
+      tags:
+        - "messageManager"
+      summary: "批量添加违禁词"
+      description: "通过上传多个文件批量添加违禁词，每个文件中每行一个违禁词"
+      operationId: "prohibit_words batch add"
+      consumes:
+        - "multipart/form-data"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "formData"
+          name: "files"
+          type: "array"
+          items:
+            type: "file"
+          description: "违禁词文件列表，每个文件中每行一个违禁词"
           required: true
       responses:
         200:

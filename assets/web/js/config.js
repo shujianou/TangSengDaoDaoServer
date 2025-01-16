@@ -1,1 +1,1 @@
-const apiURL = "http://192.168.3.82:8090/v1/"
+const apiURL = "http://192.168.31.50:8090/v1/"
