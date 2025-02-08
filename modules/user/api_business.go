@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	BusinessAuthHeaderKey = "X-Business-Token" // 业务系统认证header key
+	BusinessAuthHeaderKey = "WKIM-Business-Token" // 业务系统认证header key
 )
 
 // 业务系统用户登录

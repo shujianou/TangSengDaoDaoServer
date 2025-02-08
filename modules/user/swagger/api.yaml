@@ -2271,7 +2271,7 @@ paths:
         - "application/json"
       parameters:
         - in: "header"
-          name: "X-Business-Token"
+          name: "WKIM-Business-Token"
           type: string
           required: true
           description: "业务系统认证token"
