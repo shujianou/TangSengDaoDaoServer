@@ -1,156 +1,160 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <title>IM 业务 API文档</title>
-    <link rel="icon" type="image/png" href="./favicon.ico" />
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.9.0/swagger-ui.min.css"
-    />
-    <style>
-      html {
-        box-sizing: border-box;
-        overflow: -moz-scrollbars-vertical;
-        overflow-y: scroll;
-      }
 
-      *,
-      *:before,
-      *:after {
-        box-sizing: inherit;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <title>IM 业务 API文档</title>
+  <link rel="icon" type="image/png" href="./favicon.ico" />
+  <link rel="stylesheet" type="text/css" href="https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.9.0/swagger-ui.min.css" />
+  <style>
+    html {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
 
-      body {
-        margin: 0;
-        background: #fafafa;
-      }
+    *,
+    *:before,
+    *:after {
+      box-sizing: inherit;
+    }
 
-      #swagger-ui {
-        margin: 0 auto;
-        width: 100%;
-        max-width: 1460px;
-        padding: 0 20px;
-      }
+    body {
+      margin: 0;
+      background: #fafafa;
+    }
 
-      #error-message {
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #fff;
-        padding: 20px;
-        border-radius: 4px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        color: #ff4d4f;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="swagger-ui"></div>
-    <div id="error-message">
-      API文档仅在调试模式下可用。<br />
-      请检查服务器配置。
-    </div>
-    <script src="https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.9.0/swagger-ui-bundle.js"></script>
-    <script src="https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.9.0/swagger-ui-standalone-preset.js"></script>
-    <script>
-      window.onload = function () {
-        // 获取当前网站的URL作为基础地址
-        const currentUrl = new URL(window.location.href);
-        // 构建基础URL
-        const baseUrl = `${currentUrl.protocol}//${currentUrl.host}`;
-        // 获取完整的基础URL，包括可能的相对路径
-        const pathSegments = currentUrl.pathname.split("/");
-        pathSegments.pop(); // 移除最后的文件名
-        pathSegments.pop(); // 移除 'swagger'
-        pathSegments.pop(); // 移除 'web'
-        const apiBasePath = baseUrl + pathSegments.join("/");
+    #swagger-ui {
+      margin: 0 auto;
+      width: 100%;
+      max-width: 1460px;
+      padding: 0 20px;
+    }
 
-        // 修改API路径，加入基础路径
-        const apiUrls = [
-          { url: `${apiBasePath}/swagger/user`, name: "用户模块 (User)" },
-          { url: `${apiBasePath}/swagger/group`, name: "群组模块 (Group)" },
-          { url: `${apiBasePath}/swagger/channel`, name: "频道模块 (Channel)" },
-          { url: `${apiBasePath}/swagger/message`, name: "消息模块 (Message)" },
-          { url: `${apiBasePath}/swagger/file`, name: "文件模块 (File)" },
-          { url: `${apiBasePath}/swagger/robot`, name: "机器人模块 (Robot)" },
-          { url: `${apiBasePath}/swagger/report`, name: "举报模块 (Report)" },
-          {
-            url: `${apiBasePath}/swagger/workplace`,
-            name: "工作区模块 (Workplace)",
-          },
-          {
-            url: `${apiBasePath}/swagger/openapi`,
-            name: "开放API模块 (OpenAPI)",
-          },
-        ];
+    #error-message {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      color: #ff4d4f;
+    }
+  </style>
+</head>
 
-        // 先尝试获取一个模块的swagger文档来检查是否在debug模式
-        fetch(`${apiBasePath}/swagger/user`)
-          .then((response) => {
-            if (response.status === 403) {
-              document.getElementById("swagger-ui").style.display = "none";
-              document.getElementById("error-message").style.display = "block";
-              throw new Error("Not in debug mode");
-            }
-            return response;
-          })
-          .then(() => {
-            window.ui = SwaggerUIBundle({
-              urls: apiUrls,
-              dom_id: "#swagger-ui",
-              deepLinking: true,
-              presets: [
-                SwaggerUIBundle.presets.apis,
-                SwaggerUIStandalonePreset,
-              ],
-              plugins: [SwaggerUIBundle.plugins.DownloadUrl],
-              layout: "StandaloneLayout",
-              docExpansion: "list",
-              defaultModelsExpandDepth: -1,
-              // 设置服务器地址
+<body>
+  <div id="swagger-ui"></div>
+  <div id="error-message">
+    API文档仅在调试模式下可用。<br />
+    请检查服务器配置。
+  </div>
+  <script src="https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.9.0/swagger-ui-bundle.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/swagger-ui/5.9.0/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = function () {
+      // 获取当前网站的URL作为基础地址
+      const currentUrl = new URL(window.location.href);
+      // 构建基础URL
+      const baseUrl = `${currentUrl.protocol}//${currentUrl.host}`;
+      // 获取完整的基础URL，包括可能的相对路径
+      const pathSegments = currentUrl.pathname.split("/");
+      pathSegments.pop(); // 移除最后的文件名
+      pathSegments.pop(); // 移除 'swagger'
+      pathSegments.pop(); // 移除 'web'
+      const apiBasePath = baseUrl + pathSegments.join("/");
+
+      // 修改API路径，加入基础路径
+      const apiUrls = [
+        { url: `${apiBasePath}/swagger/common`, name: "通用模块 (Common)" },
+        { url: `${apiBasePath}/swagger/user`, name: "用户模块 (User)" },
+        { url: `${apiBasePath}/swagger/group`, name: "群组模块 (Group)" },
+        { url: `${apiBasePath}/swagger/channel`, name: "频道模块 (Channel)" },
+        { url: `${apiBasePath}/swagger/message`, name: "消息模块 (Message)" },
+        { url: `${apiBasePath}/swagger/file`, name: "文件模块 (File)" },
+        { url: `${apiBasePath}/swagger/robot`, name: "机器人模块 (Robot)" },
+        { url: `${apiBasePath}/swagger/report`, name: "举报模块 (Report)" },
+        {
+          url: `${apiBasePath}/swagger/workplace`,
+          name: "工作区模块 (Workplace)",
+        },
+        {
+          url: `${apiBasePath}/swagger/openapi`,
+          name: "开放API模块 (OpenAPI)",
+        },
+        {
+          url: `${apiBasePath}/swagger/conversation`,
+          name: "最近会话模块 (Conversation)",
+        },
+      ];
+
+      // 先尝试获取一个模块的swagger文档来检查是否在debug模式
+      fetch(`${apiBasePath}/swagger/user`)
+        .then((response) => {
+          if (response.status === 403) {
+            document.getElementById("swagger-ui").style.display = "none";
+            document.getElementById("error-message").style.display = "block";
+            throw new Error("Not in debug mode");
+          }
+          return response;
+        })
+        .then(() => {
+          window.ui = SwaggerUIBundle({
+            urls: apiUrls,
+            dom_id: "#swagger-ui",
+            deepLinking: true,
+            presets: [
+              SwaggerUIBundle.presets.apis,
+              SwaggerUIStandalonePreset,
+            ],
+            plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+            layout: "StandaloneLayout",
+            docExpansion: "list",
+            defaultModelsExpandDepth: -1,
+            // 设置服务器地址
+            url: apiBasePath,
+            // 禁用默认的服务器选择
+            displayOperationId: true,
+            // 强制所有操作使用基础URL
+            swaggerOptions: {
               url: apiBasePath,
-              // 禁用默认的服务器选择
+              urls: [{ url: apiBasePath }],
               displayOperationId: true,
-              // 强制所有操作使用基础URL
-              swaggerOptions: {
-                url: apiBasePath,
-                urls: [{ url: apiBasePath }],
-                displayOperationId: true,
-              },
-              // 添加默认使用http的配置
-              requestInterceptor: (req) => {
-                // 使用当前网站的URL作为基础地址
-                const url = new URL(req.url);
-                url.protocol = currentUrl.protocol;
-                url.hostname = currentUrl.hostname;
-                url.port = currentUrl.port;
+            },
+            // 添加默认使用http的配置
+            requestInterceptor: (req) => {
+              // 使用当前网站的URL作为基础地址
+              const url = new URL(req.url);
+              url.protocol = currentUrl.protocol;
+              url.hostname = currentUrl.hostname;
+              url.port = currentUrl.port;
 
-                // 判断是否为本地访问
-                const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-                
-                // 如果不是本地访问，添加 '/im/biz' 前缀
-                if (!isLocalhost) {
-                  // 确保路径以 '/im/biz' 开头
-                  if (!url.pathname.startsWith('/im/biz')) {
-                    url.pathname = '/im/biz' + url.pathname;
-                  }
+              // 判断是否为本地访问
+              const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+
+              // 如果不是本地访问，添加 '/im/biz' 前缀
+              if (!isLocalhost) {
+                // 确保路径以 '/im/biz' 开头
+                if (!url.pathname.startsWith('/im/biz')) {
+                  url.pathname = '/im/biz' + url.pathname;
                 }
+              }
 
-                console.log('Modified URL:', url.toString());
-                req.url = url.toString();
-                return req;
-              },
-            });
-          })
-          .catch((error) => {
-            console.error("Error:", error);
+              console.log('Modified URL:', url.toString());
+              req.url = url.toString();
+              return req;
+            },
           });
-      };
-    </script>
-  </body>
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    };
+  </script>
+</body>
+
 </html>
