@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	firebase.google.com/go/v4 v4.13.0
-	github.com/TangSengDaoDao/TangSengDaoDaoServerLib v1.0.9-0.20241211123057-043a101f9b57
+	github.com/TangSengDaoDao/TangSengDaoDaoServerLib v1.0.9-0.20250118093111-f99ce8847459
 	github.com/alibabacloud-go/darabonba-openapi v0.2.1
 	github.com/alibabacloud-go/sms-intl-20180501 v1.0.1
 	github.com/alibabacloud-go/tea v1.2.1
@@ -177,4 +177,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/TangSengDaoDao/TangSengDaoDaoServerLib => ../TangSengDaoDaoServerLib
+// replace github.com/TangSengDaoDao/TangSengDaoDaoServerLib => ../TangSengDaoDaoServerLib
