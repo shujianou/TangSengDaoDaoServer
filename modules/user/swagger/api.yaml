@@ -2354,6 +2354,50 @@ paths:
           schema:
             $ref: "#/definitions/response"
 
+  /user/search:
+    get:
+      tags:
+        - "user"
+      summary: "搜索用户"
+      description: "通过关键字搜索用户"
+      operationId: "searchUser"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "query"
+          name: "keyword"
+          type: string
+          description: "搜索关键字(手机号或短编号)"
+          required: true
+      responses:
+        200:
+          description: "返回"
+          schema:
+            type: object
+            properties:
+              exist:
+                type: integer
+                description: "是否存在 0:不存在 1:存在"
+              data:
+                type: object
+                description: "用户信息"
+                properties:
+                  uid:
+                    type: string
+                    description: "用户ID"
+                  name:
+                    type: string
+                    description: "用户名称"
+                  vercode:
+                    type: string
+                    description: "用户验证码"
+        400:
+          description: "错误"
+          schema:
+            $ref: "#/definitions/response"
+
 securityDefinitions:
   token:
     type: "apiKey"

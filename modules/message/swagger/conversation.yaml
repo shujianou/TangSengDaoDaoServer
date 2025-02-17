@@ -285,6 +285,48 @@ paths:
             $ref: "#/definitions/response"
       security:
         - token: []
+  /conversation/clearUnread:
+    put:
+      tags:
+        - "conversation"
+      summary: "清空最近会话未读数"
+      description: "清空最近会话未读数"
+      operationId: "clear conversation unread"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "清空未读数请求参数"
+          required: true
+          schema:
+            type: object
+            properties:
+              channel_id:
+                type: string
+                description: "频道ID"
+              channel_type:
+                type: integer
+                description: "频道类型"
+              unread:
+                type: integer
+                description: "未读数量 0表示清空所有未读数量"
+              message_seq:
+                type: integer
+                description: "消息序列号(仅超级群需要传)"
+      responses:
+        200:
+          description: "返回"
+          schema:
+            $ref: "#/definitions/response"
+        400:
+          description: "错误"
+          schema:
+            $ref: "#/definitions/response"
+      security:
+        - token: []
 securityDefinitions:
   token:
     type: "apiKey"
@@ -409,7 +451,7 @@ definitions:
         description: "性别 1 男"
       category:
         type: string
-        description: "用户分类 ‘客服’ 等"
+        description: "用户分类 '客服' 等"
       short_no:
         type: string
         description: "用户唯一短号"

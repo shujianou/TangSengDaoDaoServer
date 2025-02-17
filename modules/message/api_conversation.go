@@ -79,19 +79,13 @@ func (co *Conversation) Route(r *wkhttp.WKHttp) {
 
 	}
 
-	// TODO: 这个里的接口后面移到 conversation的组里，因为单词拼错了 😭
-	cnversation := r.Group("/v1/coversation", co.ctx.AuthMiddleware(r))
-	{
-		cnversation.PUT("/clearUnread", co.clearConversationUnread)
-
-	}
-
 	conversation := r.Group("/v1/conversation", co.ctx.AuthMiddleware(r))
 	{
 		// 离线的最近会话
 		conversation.POST("/sync", co.syncUserConversation)
 		conversation.POST("/syncack", co.syncUserConversationAck)
-		conversation.POST("/extra/sync", co.conversationExtraSync) // 同步最近会话扩展
+		conversation.POST("/extra/sync", co.conversationExtraSync)   // 同步最近会话扩展
+		conversation.PUT("/clearUnread", co.clearConversationUnread) // 清空未读
 	}
 	conversations := r.Group("/v1/conversations", co.ctx.AuthMiddleware(r))
 	{

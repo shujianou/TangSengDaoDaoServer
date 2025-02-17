@@ -136,7 +136,7 @@ func (u *User) verifyBusinessToken(token string) bool {
 type businessLoginReq struct {
 	UID      string     `json:"uid"`      // 业务系统用户ID，可选
 	Name     string     `json:"name"`     // 用户昵称
-	Sex      int        `json:"sex"`      // 性别 1:男 2:女
+	Sex      int        `json:"sex"`      // 性别 0:未知 1:男 2:女
 	Flag     uint8      `json:"flag"`     // 设备标记 0.APP 1.PC
 	Device   *deviceReq `json:"device"`   // 设备信息
 	Zone     string     `json:"zone"`     // 区号
@@ -148,7 +148,7 @@ func (r *businessLoginReq) Check() error {
 	if r.Name == "" {
 		return errors.New("用户昵称不能为空！")
 	}
-	if r.Sex != 1 && r.Sex != 2 {
+	if r.Sex != 0 && r.Sex != 1 && r.Sex != 2 {
 		return errors.New("性别参数错误！")
 	}
 	return nil

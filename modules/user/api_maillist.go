@@ -20,6 +20,7 @@ func (u *User) addMaillist(c *wkhttp.Context) {
 		return
 	}
 	result := make([]*mailListResp, 0)
+
 	if len(req) == 0 {
 		c.Response(result)
 		return
@@ -29,6 +30,35 @@ func (u *User) addMaillist(c *wkhttp.Context) {
 		c.ResponseError(errors.New("查询登录用户信息错误"))
 		return
 	}
+
+	// 查询已存在的通讯录记录
+	existingMaillist, err := u.maillistDB.query(loginUID)
+	if err != nil {
+		u.Error("查询用户现有通讯录数据错误", zap.Error(err))
+		c.ResponseError(errors.New("查询用户现有通讯录数据错误"))
+		return
+	}
+
+	// 过滤掉已存在的记录
+	newMaillist := make([]*mailListReq, 0)
+	for _, maillist := range req {
+		isExist := false
+		for _, existing := range existingMaillist {
+			if existing.Zone == maillist.Zone && existing.Phone == maillist.Phone {
+				isExist = true
+				break
+			}
+		}
+		if !isExist {
+			newMaillist = append(newMaillist, maillist)
+		}
+	}
+
+	if len(newMaillist) == 0 {
+		c.ResponseOK()
+		return
+	}
+
 	tx, err := u.db.session.Begin()
 	if err != nil {
 		u.Error("数据库事物开启失败", zap.Error(err))
@@ -42,7 +72,7 @@ func (u *User) addMaillist(c *wkhttp.Context) {
 		}
 	}()
 
-	for _, maillist := range req {
+	for _, maillist := range newMaillist {
 		zone := maillist.Zone
 		if maillist.Zone == "" && !strings.HasPrefix(maillist.Phone, "00") {
 			zone = loginUser.Zone
@@ -56,7 +86,7 @@ func (u *User) addMaillist(c *wkhttp.Context) {
 		}, tx)
 		if err != nil {
 			tx.RollbackUnlessCommitted()
-			u.Error("添加用户通讯录联系人错误")
+			u.Error("添加用户通讯录联系人错误", zap.Error(err))
 			c.ResponseError(errors.New("添加用户通讯录联系人错误"))
 			return
 		}
