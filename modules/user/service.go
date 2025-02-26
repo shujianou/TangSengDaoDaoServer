@@ -78,6 +78,8 @@ type IService interface {
 	UpdateUserMsgExpireSecond(uid string, msgExpireSecond int64) error
 	// 搜索好友
 	SearchFriendsWithKeyword(uid string, keyword string) ([]*FriendResp, error)
+	// GetUsersOnlineStatus 获取用户在线状态
+	GetUsersOnlineStatus(uids []string) ([]*UserOnlineStatus, error)
 }
 
 // Service Service
@@ -964,4 +966,45 @@ func NewUserDetailResp(m *Detail, remark, loginUID string, sourceFrom string, on
 		FlameSecond:    flameSecond,
 		Vercode:        vercode,
 	}
+}
+
+// UserOnlineStatus 用户在线状态
+type UserOnlineStatus struct {
+	UID        string `json:"uid"`
+	Online     bool   `json:"online"`
+	LastSeenAt int64  `json:"last_seen_at"`
+	DeviceType uint8  `json:"device_type"` // 设备类型 0:APP 1:Web 2:PC
+}
+
+// GetUsersOnlineStatus 获取用户在线状态
+func (s *Service) GetUsersOnlineStatus(uids []string) ([]*UserOnlineStatus, error) {
+	onlineStatuses := make([]*UserOnlineStatus, 0)
+	if len(uids) == 0 {
+		return onlineStatuses, nil
+	}
+
+	// 获取用户在线状态
+	onlineModels, err := s.onlineDB.queryUserLastNewOnlines(uids)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, model := range onlineModels {
+		status := &UserOnlineStatus{
+			UID:        model.UID,
+			Online:     model.Online == 1,
+			DeviceType: model.DeviceFlag,
+		}
+
+		// 设置最后在线时间
+		if model.Online == 1 {
+			status.LastSeenAt = int64(model.LastOnline)
+		} else {
+			status.LastSeenAt = int64(model.LastOffline)
+		}
+
+		onlineStatuses = append(onlineStatuses, status)
+	}
+
+	return onlineStatuses, nil
 }

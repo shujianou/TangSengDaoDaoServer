@@ -117,7 +117,6 @@ func New(ctx *config.Context) *User {
 func (u *User) Route(r *wkhttp.WKHttp) {
 	auth := r.Group("/v1", u.ctx.AuthMiddleware(r))
 	{
-
 		auth.GET("/users/:uid", u.get) // 根据uid查询用户信息
 		// 获取用户的会话信息
 		// auth.GET("/users/:uid/conversation", u.userConversationInfoGet)
@@ -154,24 +153,28 @@ func (u *User) Route(r *wkhttp.WKHttp) {
 		user.GET("/devices/:device_id", u.getDevice)       // 查询某个登录设备
 		user.GET("/online", u.onlineList)                  // 用户在线列表（我的设备和我的好友）
 		user.POST("/online", u.onlinelistWithUIDs)         // 获取指定的uid在线状态
+		user.GET("/online_status", u.GetOnlineStatus)      // 获取用户在线状态
 		user.POST("/pc/quit", u.pcQuit)                    // 退出pc登录
 
 		// #################### 用户通讯录 ####################
 		user.POST("/maillist", u.addMaillist)
 		user.GET("/maillist", u.getMailList)
+		user.POST("/maillist/single", u.addSingleMaillist) // 添加单条通讯录记录
+		user.PUT("/maillist/single", u.updateMaillist)     // 编辑通讯录联系人
 
 		// #################### 用户红点 ####################
 		user.GET("/reddot/:category", u.getRedDot)      // 获取用户红点
 		user.DELETE("/reddot/:category", u.clearRedDot) // 清除红点
+		user.POST("/searchByPhone", u.searchByPhone)    // 根据手机号搜索用户信息
 	}
 	v := r.Group("/v1")
 	{
-
-		v.POST("/user/register", u.register)                 //用户注册
-		v.POST("/user/login", u.login)                       // 用户登录
-		v.POST("/user/usernamelogin", u.usernameLogin)       // 用户名登录
-		v.POST("/user/usernameregister", u.usernameRegister) // 用户名注册
-		v.POST("/user/business/login", u.businessLogin)      // 业务系统用户登录
+		v.POST("/user/register", u.register)                    //用户注册
+		v.POST("/user/login", u.login)                          // 用户登录
+		v.POST("/user/usernamelogin", u.usernameLogin)          // 用户名登录
+		v.POST("/user/usernameregister", u.usernameRegister)    // 用户名注册
+		v.POST("/user/business/login", u.businessLogin)         // 业务系统用户登录
+		v.PUT("/user/business/:username", u.businessUpdateUser) // 业务系统修改用户信息
 
 		v.POST("/user/pwdforget_web3", u.resetPwdWithWeb3PublicKey) // 通过web3公钥重置密码
 		v.GET("/user/web3verifytext", u.getVerifyText)              // 获取验证字符串
@@ -198,13 +201,11 @@ func (u *User) Route(r *wkhttp.WKHttp) {
 		// gitee
 		v.GET("/user/gitee", u.gitee)            // gitee认证页面
 		v.GET("/user/oauth/gitee", u.giteeOAuth) // gitee登录
-
 	}
 
 	u.ctx.AddOnlineStatusListener(u.onlineService.listenOnlineStatus) // 监听在线状态
 	u.ctx.AddOnlineStatusListener(u.handleOnlineStatus)               // 需要放在listenOnlineStatus之后
 	u.ctx.Schedule(time.Minute*5, u.onlineStatusCheck)                // 在线状态定时检查
-
 }
 
 // app退出登录
@@ -2855,4 +2856,81 @@ func newLoginUserDetailResp(m *Model, token string, ctx *config.Context) *loginU
 			MuteOfApp:         m.MuteOfApp,
 		},
 	}
+}
+
+// GetOnlineStatus 获取用户在线状态
+func (u *User) GetOnlineStatus(c *wkhttp.Context) {
+	uidsStr := c.Query("uids")
+	if uidsStr == "" {
+		c.ResponseError(errors.New("用户ID列表不能为空"))
+		return
+	}
+
+	uids := strings.Split(uidsStr, ",")
+	statuses, err := u.userService.GetUsersOnlineStatus(uids)
+	if err != nil {
+		c.ResponseError(err)
+		return
+	}
+
+	c.Response(statuses)
+}
+
+// 根据手机号搜索用户信息
+func (u *User) searchByPhone(c *wkhttp.Context) {
+	var req struct {
+		Zone  string `json:"zone"`  // 区号
+		Phone string `json:"phone"` // 手机号
+	}
+	if err := c.BindJSON(&req); err != nil {
+		u.Error("请求数据格式有误！", zap.Error(err))
+		c.ResponseError(errors.New("请求数据格式有误！"))
+		return
+	}
+	if strings.TrimSpace(req.Zone) == "" {
+		c.ResponseError(errors.New("区号不能为空！"))
+		return
+	}
+	if strings.TrimSpace(req.Phone) == "" {
+		c.ResponseError(errors.New("手机号不能为空！"))
+		return
+	}
+
+	userInfo, err := u.db.QueryByPhone(req.Zone, req.Phone)
+	if err != nil {
+		u.Error("查询用户信息失败！", zap.Error(err))
+		c.ResponseError(errors.New("查询用户信息失败！"))
+		return
+	}
+
+	if userInfo == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"exist": 0,
+		})
+		return
+	}
+
+	appconfig, err := u.commonService.GetAppConfig()
+
+	if req.Phone == userInfo.Phone {
+		//关闭了手机号搜索
+		if userInfo.SearchByPhone == 0 || (appconfig != nil && appconfig.SearchByPhone == 0) || u.ctx.GetConfig().PhoneSearchOff {
+			c.JSON(http.StatusOK, gin.H{
+				"exist": 0,
+			})
+			return
+		}
+	}
+
+	if userInfo == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"exist": 0,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"exist": 1,
+		"data":  newUserResp(userInfo),
+	})
 }

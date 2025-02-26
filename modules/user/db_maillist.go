@@ -28,10 +28,16 @@ func (d *maillistDB) queryWitchVercode(vercode string) (*maillistModel, error) {
 	_, err := d.session.Select("*").From("user_maillist").Where("vercode=? ", vercode).Load(&model)
 	return model, err
 }
+
 func (d *maillistDB) query(uid string) ([]*maillistModel, error) {
 	var models []*maillistModel
 	_, err := d.session.Select("*").From("user_maillist").Where("uid=?", uid).Load(&models)
 	return models, err
+}
+
+func (d *maillistDB) updateName(uid string, zone string, phone string, name string) error {
+	_, err := d.session.Update("user_maillist").Set("name", name).Where("uid=? AND zone=? AND phone=?", uid, zone, phone).Exec()
+	return err
 }
 
 type maillistModel struct {

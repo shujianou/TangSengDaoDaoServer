@@ -3,6 +3,7 @@ package file
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"errors"
 	"image"
 	"image/color"
@@ -458,10 +459,14 @@ func (s *Service) downloadImage(url string, ctx context.Context) (io.ReadCloser,
 	if err != nil {
 		return nil, err
 	}
-	client := &http.Client{}
-	// resp, err := s.downloadClient.Get(url)
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, // 跳过证书验证
+			},
+		},
+	}
 	resp, err := client.Do(req)
-	// resp, err := s.downloadClient.Do(req)
 	if err != nil {
 		s.Error("下载图片错误！", zap.String("url", url), zap.Error(err))
 		return nil, err

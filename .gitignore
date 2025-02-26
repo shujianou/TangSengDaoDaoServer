@@ -32,3 +32,4 @@ wukongimdata/
 docker_data/
 build_temp/
 .cursorrules
+__debug_bin*

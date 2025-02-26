@@ -2006,6 +2006,59 @@ paths:
             $ref: "#/definitions/response"
       security:
         - token: []
+
+  /user/online_status:
+    get:
+      summary: 获取用户在线状态
+      parameters:
+        - name: uids
+          in: query
+          description: 用户ID列表，多个用逗号分隔
+          required: true
+          type: string
+      tags:
+        - "user"
+      responses:
+        200:
+          description: 成功
+          schema:
+            type: object
+            properties:
+              status:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 状态码
+                  message:
+                    type: string
+                    description: 状态信息
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    uid:
+                      type: string
+                      description: 用户ID
+                    online:
+                      type: boolean
+                      description: 是否在线
+                    last_seen_at:
+                      type: integer
+                      description: 最后在线时间戳(秒)
+                    device_type:
+                      type: integer
+                      format: uint8
+                      description: 设备类型 0:APP 1:Web 2:PC
+                      enum: [0, 1, 2]
+        400:
+          description: "错误"
+          schema:
+            $ref: "#/definitions/response"
+            
+      security:
+        - token: []      
   /user/loginuuid:
     get:
       tags:
@@ -2263,7 +2316,11 @@ paths:
       tags:
         - "user"
       summary: "业务系统用户登录"
-      description: "业务系统用户登录或注册"
+      description: |
+        业务系统用户登录或注册。
+        - 如果提供了uid且用户存在，则直接登录
+        - 如果未提供uid或用户不存在，则创建新用户并登录
+        - 如果提供了avatar，系统会自动下载并处理头像
       operationId: "business login"
       consumes:
         - "application/json"
@@ -2274,29 +2331,32 @@ paths:
           name: "WKIM-Business-Token"
           type: string
           required: true
-          description: "业务系统认证token"
+          description: "业务系统认证token，需要在配置文件中预先设置允许的token列表"
         - in: "body"
           name: "req"
           description: "业务系统登录请求"
           required: true
           schema:
             type: object
+            required:
+              - name
+              - sex
+              - flag
             properties:
               uid:
                 type: string
-                description: "业务系统用户ID，可选"
+                description: "业务系统用户ID，可选。如果提供且用户存在则直接登录，否则创建新用户"
               name:
                 type: string
-                description: "用户昵称"
-                required: true
+                description: "用户昵称，必填"
               sex:
                 type: integer
-                description: "性别 1:男 2:女"
-                required: true
+                enum: [0, 1, 2]
+                description: "性别 0:未知 1:男 2:女，必填"
               flag:
                 type: integer
-                description: "设备标记 0.APP 1.PC"
-                required: true
+                enum: [0, 1]
+                description: "设备标记 0.APP 1.PC，必填"
               device:
                 type: object
                 description: "设备信息"
@@ -2319,6 +2379,9 @@ paths:
               username:
                 type: string
                 description: "用户名"
+              avatar:
+                type: string
+                description: "头像链接地址，如果提供则会自动下载并处理"
       responses:
         200:
           description: "返回登录用户详情"
@@ -2336,7 +2399,7 @@ paths:
                 description: "用户昵称"
               sex:
                 type: integer
-                description: "性别 1:男 2:女"
+                description: "性别 0:未知 1:男 2:女"
               short_no:
                 type: string
                 description: "短编号"
@@ -2349,10 +2412,102 @@ paths:
               username:
                 type: string
                 description: "用户名"
+              setting:
+                type: object
+                description: "用户设置"
+                properties:
+                  search_by_phone:
+                    type: integer
+                    description: "是否可以通过手机号搜索 0.否 1.是"
+                  search_by_short:
+                    type: integer
+                    description: "是否可以通过短编号搜索 0.否 1.是"
+                  new_msg_notice:
+                    type: integer
+                    description: "新消息通知 0.否 1.是"
+                  msg_show_detail:
+                    type: integer
+                    description: "显示消息通知详情 0.否 1.是"
+                  voice_on:
+                    type: integer
+                    description: "声音 0.否 1.是"
+                  shock_on:
+                    type: integer
+                    description: "震动 0.否 1.是"
+                  device_lock:
+                    type: integer
+                    description: "是否开启设备锁 0.否 1.是"
+                  offline_protection:
+                    type: integer
+                    description: "是否开启离线保护 0.否 1.是"
         400:
           description: "错误"
           schema:
             $ref: "#/definitions/response"
+          examples:
+            application/json:
+              status:
+                code: 400
+                message: "用户昵称不能为空"
+
+  /user/business/{username}:
+    put:
+      tags:
+        - "user"
+      summary: "业务系统修改用户信息"
+      description: |
+        业务系统修改用户信息。
+        - 需要在header中传入业务系统token(WKIM-Business-Token)
+        - 通过username查找要修改的用户
+        - 至少需要提供一个要修改的字段(name/sex/avatar)
+        - 如果提供了avatar，系统会自动下载并处理头像，同时通知用户的好友
+      operationId: "business update user"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "header"
+          name: "WKIM-Business-Token"
+          type: string
+          required: true
+          description: "业务系统认证token，需要在配置文件中预先设置允许的token列表"
+        - in: "path"
+          name: "username"
+          type: string
+          required: true
+          description: "用户名，用于查找要修改的用户"
+        - in: "body"
+          name: "req"
+          description: "修改用户信息请求"
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: "用户昵称"
+              sex:
+                type: integer
+                enum: [0, 1, 2]
+                description: "性别 0:未知 1:男 2:女"
+              avatar:
+                type: string
+                description: "头像链接地址，系统会自动下载并处理"
+      responses:
+        200:
+          description: "修改成功"
+          schema:
+            $ref: "#/definitions/response"
+        400:
+          description: "错误"
+          schema:
+            $ref: "#/definitions/response"
+          examples:
+            application/json:
+              status:
+                code: 400
+                message: "用户不存在"
 
   /user/search:
     get:
@@ -2397,6 +2552,127 @@ paths:
           description: "错误"
           schema:
             $ref: "#/definitions/response"
+
+  /user/searchByPhone:
+    post:
+      tags:
+        - "user"
+      summary: "根据手机号搜索用户信息"
+      description: "根据手机号和区号搜索用户信息"
+      operationId: "searchByPhone"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "req"
+          description: "搜索请求"
+          required: true
+          schema:
+            type: object
+            properties:
+              zone:
+                type: string
+                description: "区号"
+              phone:
+                type: string
+                description: "手机号"
+      responses:
+        200:
+          description: "返回"
+          schema:
+            type: object
+            properties:
+              exist:
+                type: integer
+                description: "用户是否存在 1: 存在, 0: 不存在"
+              data:
+                $ref: "#/definitions/userResp"
+        400:
+          description: "错误"
+          schema:
+            $ref: "#/definitions/response"
+      security:
+        - token: []
+
+  /user/maillist/single:
+    post:
+      tags:
+        - "user"
+      summary: "添加单条通讯录记录"
+      description: "添加单条通讯录记录"
+      operationId: "add single maillist"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "req"
+          description: "添加单条通讯录记录请求"
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: "联系人姓名"
+              zone:
+                type: string
+                description: "区号"
+              phone:
+                type: string
+                description: "电话号码"
+      responses:
+        200:
+          description: "返回"
+          schema:
+            $ref: "#/definitions/response"
+        400:
+          description: "错误"
+          schema:
+            $ref: "#/definitions/response"
+      security:
+        - token: []
+    put:
+      tags:
+        - "user"
+      summary: "编辑通讯录联系人"
+      description: "编辑通讯录联系人"
+      operationId: "update maillist single"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "req"
+          description: "编辑通讯录联系人姓名请求"
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: "新的联系人姓名"
+              zone:
+                type: string
+                description: "区号"
+              phone:
+                type: string
+                description: "电话号码"
+      responses:
+        200:
+          description: "返回"
+          schema:
+            $ref: "#/definitions/response"
+        400:
+          description: "错误"
+          schema:
+            $ref: "#/definitions/response"
+      security:
+        - token: []
 
 securityDefinitions:
   token:

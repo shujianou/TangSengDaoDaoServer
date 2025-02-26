@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -112,6 +113,45 @@ func (f *File) getFilePath(c *wkhttp.Context) {
 	})
 }
 
+// getContentType 根据文件名判断content-type
+func (f *File) getContentType(filename string) string {
+	if filename == "" {
+		return "application/octet-stream"
+	}
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	// 图片类型
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".png":
+		return "image/png"
+	case ".gif":
+		return "image/gif"
+	case ".webp":
+		return "image/webp"
+	// 视频类型
+	case ".mp4":
+		return "video/mp4"
+	case ".avi":
+		return "video/x-msvideo"
+	case ".mov":
+		return "video/quicktime"
+	// 音频类型
+	case ".mp3":
+		return "audio/mpeg"
+	case ".wav":
+		return "audio/wav"
+	// 文档类型
+	case ".pdf":
+		return "application/pdf"
+	case ".doc", ".docx":
+		return "application/msword"
+	case ".xls", ".xlsx":
+		return "application/vnd.ms-excel"
+	}
+	return "application/octet-stream"
+}
+
 // 上传文件
 func (f *File) uploadFile(c *wkhttp.Context) {
 	uploadPath := c.Query("path")
@@ -121,18 +161,22 @@ func (f *File) uploadFile(c *wkhttp.Context) {
 	if signature != "" {
 		signatureInt, _ = strconv.ParseInt(signature, 10, 64)
 	}
-	contentType := c.DefaultPostForm("contenttype", "application/octet-stream")
+
 	err := f.checkReq(Type(fileType), uploadPath)
 	if err != nil {
 		c.ResponseError(err)
 		return
 	}
-	file, _, err := c.Request.FormFile("file")
+	file, fileHeader, err := c.Request.FormFile("file")
 	if err != nil {
 		f.Error("读取文件失败！", zap.Error(err))
 		c.ResponseError(errors.New("读取文件失败！"))
 		return
 	}
+
+	// 获取文件的content-type
+	contentType := f.getContentType(fileHeader.Filename)
+
 	path := uploadPath
 	if !strings.HasPrefix(path, "/") {
 		path = fmt.Sprintf("/%s", path)
