@@ -483,7 +483,7 @@ func (co *Conversation) syncUserConversation(c *wkhttp.Context) {
 			deviceOffsetM := deviceOffsetModelMap[channelKey]
 			extra := conversationExtraMap[channelKey]
 			syncUserConversationResp := newSyncUserConversationResp(conversation, extra, loginUID, co.messageExtraDB, co.messageReactionDB, co.messageUserExtraDB, mute, stick, channelOffsetM, deviceOffsetM, channelOffsetMessageSeq)
-			if len(syncUserConversationResp.Recents) > 0 {
+			if len(syncUserConversationResp.Recents) >= 0 {
 				syncUserConversationResps = append(syncUserConversationResps, syncUserConversationResp)
 			}
 			// if channelSetting != nil {
