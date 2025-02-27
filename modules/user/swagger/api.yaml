@@ -1393,7 +1393,7 @@ paths:
       tags:
         - "user"
       summary: "修改登录用户设置"
-      description: "修改登录用户设置"
+      description: "修改登录用户设置，支持多种设置项的更新"
       operationId: "login user setting"
       consumes:
         - "application/json"
@@ -1401,18 +1401,42 @@ paths:
         - "application/json"
       parameters:
         - in: "body"
-          name: "key"
-          description: "登录用户设置 如开启通过手机号搜索{'search_by_phone':1}"
+          name: "body"
+          description: "用户设置参数"
           required: true
           schema:
             type: object
             properties:
               search_by_phone:
                 type: integer
-                description: "修改登录用户设置 search_by_phone(通过手机号搜索) new_msg_notice(新消息通知)等"
+                description: "是否可以通过手机号搜索 0.否 1.是"
+              search_by_short:
+                type: integer
+                description: "是否可以通过短编号搜索 0.否 1.是"
+              new_msg_notice:
+                type: integer
+                description: "新消息通知 0.否 1.是"
+              msg_show_detail:
+                type: integer
+                description: "显示消息通知详情 0.否 1.是"
+              voice_on:
+                type: integer
+                description: "声音开关 0.否 1.是"
+              shock_on:
+                type: integer
+                description: "震动开关 0.否 1.是"
+              offline_protection:
+                type: integer
+                description: "离线保护，断网屏保 0.否 1.是"
+              device_lock:
+                type: integer
+                description: "设备锁 0.否 1.是"
+              mute_of_app:
+                type: integer
+                description: "web登录时APP是否静音 0.否 1.是"
       responses:
         200:
-          description: "返回"
+          description: "设置更新成功"
           schema:
             $ref: "#/definitions/response"
         400:

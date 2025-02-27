@@ -710,9 +710,10 @@ func (u *User) userUpdateSetting(c *wkhttp.Context) {
 				c.ResponseError(errors.New("修改用户资料失败"))
 				return
 			}
-			c.ResponseOK()
 		}
 	}
+	// 在所有设置项更新完成后，只响应一次
+	c.ResponseOK()
 }
 
 // 获取用户详情
