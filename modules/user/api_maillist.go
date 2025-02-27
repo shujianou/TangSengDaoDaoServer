@@ -11,6 +11,19 @@ import (
 	"go.uber.org/zap"
 )
 
+// 验证用户名是否符合规则
+func validateName(name string) error {
+	// 检查长度
+	if len(name) < 1 {
+		return errors.New("用户名长度必须至少为1个字符")
+	}
+	if len(name) > 32 {
+		return errors.New("用户名长度不能超过32个字符")
+	}
+
+	return nil
+}
+
 // 上传用户通讯录好友
 func (u *User) addMaillist(c *wkhttp.Context) {
 	loginUID := c.GetLoginUID()
@@ -73,6 +86,13 @@ func (u *User) addMaillist(c *wkhttp.Context) {
 	}()
 
 	for _, maillist := range newMaillist {
+		// 验证用户名
+		if err := validateName(maillist.Name); err != nil {
+			tx.RollbackUnlessCommitted()
+			c.ResponseError(err)
+			return
+		}
+
 		zone := maillist.Zone
 		if maillist.Zone == "" && !strings.HasPrefix(maillist.Phone, "00") {
 			zone = loginUser.Zone
@@ -170,6 +190,12 @@ func (u *User) addSingleMaillist(c *wkhttp.Context) {
 		return
 	}
 
+	// 验证用户名
+	if err := validateName(req.Name); err != nil {
+		c.ResponseError(err)
+		return
+	}
+
 	loginUser, err := u.db.QueryByUID(loginUID)
 	if err != nil {
 		c.ResponseError(errors.New("查询登录用户信息错误"))
@@ -242,6 +268,12 @@ func (u *User) updateMaillist(c *wkhttp.Context) {
 	var req updateMaillistReq
 	if err := c.BindJSON(&req); err != nil {
 		c.ResponseError(errors.New("请求数据格式有误！"))
+		return
+	}
+
+	// 验证用户名
+	if err := validateName(req.Name); err != nil {
+		c.ResponseError(err)
 		return
 	}
 
