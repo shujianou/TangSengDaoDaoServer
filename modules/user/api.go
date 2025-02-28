@@ -623,9 +623,16 @@ func (u *User) userUpdateWithField(c *wkhttp.Context) {
 			return
 		}
 		//修改用户信息
-		if key == "name" && value != nil && value.(string) == "" { // 修改名字
-			c.ResponseError(errors.New("名字不能为空！"))
-			return
+		if key == "name" { // 修改名字
+			if value != nil && value.(string) == "" {
+				c.ResponseError(errors.New("名字不能为空！"))
+				return
+			}
+			// 校验名称长度不能超过20个字符
+			if len([]rune(value.(string))) > 20 {
+				c.ResponseError(errors.New("名字长度不能超过20个字符"))
+				return
+			}
 		}
 
 		err = u.db.UpdateUsersWithField(key, fmt.Sprintf("%s", value), loginUID)
